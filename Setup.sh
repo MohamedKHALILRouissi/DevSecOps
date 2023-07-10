@@ -15,9 +15,9 @@
 config_file=$(find / -type f -name configfile.txt 2>/dev/null)
 
 # Global variables
-main_folder=$(pwd)
-node_version="14"
-UPDATE="true"
+main_folder=$(pwd)         # the main folder 
+node_version="14"          # node version installed 
+UPDATE="true"              # to update the host 
 # Function to display section headers
 section_header() {
   echo "================================================"
@@ -67,6 +67,7 @@ install_with_apt() {
     $toolname $version
   else
     tool_installation_failed $toolname
+    exit 1
   fi
 }
 
@@ -89,6 +90,7 @@ install_from_url() {
       tool_installed $toolname
     else
       tool_installation_failed $toolname
+      exit 1
     fi
   elif [[ "$extension" == "ZIP" ]] # ZIP
   then
@@ -101,6 +103,7 @@ install_from_url() {
       tool_installed $toolname
     else
      tool_installation_failed $toolname
+     exit 1
     fi
   else
     eval $url
@@ -108,6 +111,7 @@ install_from_url() {
       $toolname $version
     else
       tool_installation_failed $toolname
+      exit 1
     fi
   fi
 
@@ -134,6 +138,7 @@ install_with_python() {
     $toolname $version
   else
     tool_installation_failed $toolname
+    exit 1
   fi
 }
 
@@ -169,7 +174,7 @@ ping -q -c 1 -W 1 8.8.8.8 > /dev/null
 if [ $? -ne 0 ]; then 
   echo "Error: Internet connection not available."
   echo "Exiting..."
-  #exit 1
+  exit 1
 fi
 
 
@@ -184,6 +189,7 @@ then
     unzip -v
   else
     tool_installation_failed "unzip"
+    exit 1
   fi
 else
   unzip -v
@@ -200,6 +206,7 @@ if [ -z "$(which curl)" ]; then
     curl --version
   else
     tool_installation_failed "curl"
+    exit 1
   fi
 else
   curl --version
@@ -311,4 +318,3 @@ while IFS= read -r line; do
   esac
 
 done < "$config_file"
-
