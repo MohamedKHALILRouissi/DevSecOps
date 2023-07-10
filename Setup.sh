@@ -1,4 +1,3 @@
-root@2cb3efe30244:/home# cat Setup.sh 
 #!/bin/bash
 
 
@@ -111,6 +110,7 @@ install_from_url() {
       tool_installation_failed $toolname
     fi
   fi
+
   #if [ $? -eq 0 ]; then
   #  path=$(find . -type f -name "$toolname")
   #  echo "export PATH=$PATH:$(echo $path | xargs -I {} dirname {} )"  >> ~/.bashrc && source ~/.bashrc  # setup for later use in jenkins
@@ -141,24 +141,68 @@ install_with_python() {
 if ! [ -x "$(command -v apt)" ]; then
   echo "Error: apt package manager is not available."
   echo "Exiting..."
-  #exit 1
+  exit 1
 fi
+
+
+
+if [ -z "$(which ping)" ]
+then
+  echo "ping not found , installing"
+  yes | apt install -y iputils-ping
+  echo "==================== ping installed ======================"
+  ping -V
+  if [ $? -eq 0 ]; then
+    tool_installed "ping"
+  else
+    tool_installation_failed "ping"
+    exit 1
+  fi
+else
+  ping -V
+fi
+
+
 
 # Check internet connectivity ( some linux dist doesnt have ping )
 ping -q -c 1 -W 1 8.8.8.8 > /dev/null
-if [ $? -ne 0 ]; then
-  apt install iputils-ping # use check to not redo it 
+if [ $? -ne 0 ]; then 
   echo "Error: Internet connection not available."
   echo "Exiting..."
   #exit 1
 fi
 
+
+# unzip
+if [ -z "$(which unzip)" ]
+then
+  echo "unzip not found , installing"
+  yes | apt install -y unzip
+  echo "================== unzip installed ========================"
+  if [ $? -eq 0 ]; then
+    tool_installed "unzip"
+    unzip -v
+  else
+    tool_installation_failed "unzip"
+  fi
+else
+  unzip -v
+fi
+
+
 # Check if curl is available ( some linux dist doesnt have curl )
 if [ -z "$(which curl)" ]; then
-  apt install curl # fix to check to not redo it 
-  echo "Error: curl is not available."
-  echo "Exiting..."
-  #exit 1
+  echo "curl not found , installing"
+  yes | apt install -y curl
+  echo "================== curl ==================================="
+  if [ $? -eq 0 ]; then
+    tool_installed "curl"
+    curl --version
+  else
+    tool_installation_failed "curl"
+  fi
+else
+  curl --version
 fi
 
 # System update
@@ -180,7 +224,14 @@ then
   apt install default-jdk
   java --version
   echo "================================================"
-fi 
+  if [ $? -eq 0 ]; then
+    tool_installed "java"
+    java -version
+  else
+    tool_installation_failed "java"
+    exit 1
+  fi
+fi
 
 
 
