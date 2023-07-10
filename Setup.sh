@@ -15,9 +15,12 @@
 config_file=$(find / -type f -name configfile.txt 2>/dev/null)
 
 # Global variables
+
 main_folder=$(pwd)         # the main folder 
 node_version="14"          # node version installed 
 UPDATE="true"              # to update the host 
+DEBUG="false"              # debug system information
+
 # Function to display section headers
 section_header() {
   echo "================================================"
@@ -142,12 +145,31 @@ install_with_python() {
   fi
 }
 
+# MAIN 
+
 # Check if apt package manager is available
 if ! [ -x "$(command -v apt)" ]; then
   echo "Error: apt package manager is not available."
   echo "Exiting..."
   exit 1
 fi
+
+# can be used by the developer to debug any failed in the pipeline or to check wether the agent have the capability to deploy the code 
+if [ "$DEBUG" == "true" ]
+then 
+        echo " ========================================= host information ======================================"
+        echo " OS = $(uname -s) $(uname -o)"
+        echo " kernel release = $(uname -r)"
+        echo " machine hardware name = $(uname -m)"
+        echo " processor architecture = $(uname -p)"
+        echo " ========================================= memory usage =========================================="
+        free -th
+        echo " ======================================== storage usage =========================================="
+        lscpu  -e=CPU,CORE,MAXMHZ,MINMHZ
+        echo " ======================================== Disk usage ============================================="
+        df -u 
+fi 
+
 
 
 
@@ -317,4 +339,24 @@ while IFS= read -r line; do
       ;;
   esac
 
+if [ "$tool" == "pmd" ]
+then
+  git clone https://github.com/pmd/pmd.git
+  cd pmd
+  keep_files=("pmd-java" "pmd-html" "pmd-javascript")
+  #install the ruleset for pmd ( only java and javascript and html stored ) 
+  for file in *; do
+    if [[ ! " ${keep_files[@]} " =~ " ${file} " ]]; then
+      if [[ -d $file ]]; then
+        rm -rf "$file"  # Remove the directory and its contents recursively
+      else
+        rm "$file"     # Remove the file
+      fi
+    fi
+  done
+fi
+
 done < "$config_file"
+
+echo "======================================== FINISH SUCCESS ============================================================="
+exit 0
