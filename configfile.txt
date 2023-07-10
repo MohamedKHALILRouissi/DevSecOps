@@ -1,0 +1,6 @@
+git true -v="--version" -e="" -U="" -u="" -I="APT"
+mvn true -v="--version" -e="ZIP" -U="https://dlcdn.apache.org/maven/maven-3/3.9.3/binaries/apache-maven-3.9.3-bin.zip" -u="" -I="URL"
+dependency-check.sh true -v="-v" -e="ZIP" -U="https://github.com/jeremylong/DependencyCheck/releases/download/v8.3.1/dependency-check-8.3.1-release.zip" -u="" -I="URL"
+njsscan true -v="-v" -e="" -U="" -u="" -I="PY"
+insider true -v="-v" -e="TAR" -U="https://github.com/insidersec/insider/releases/download/2.1.0/insider_2.1.0_linux_x86_64.tar.gz" -u="" -I="URL"
+
