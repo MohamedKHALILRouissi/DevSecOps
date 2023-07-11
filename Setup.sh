@@ -11,16 +11,26 @@
 echo "================================================================== STARTING SCRIPT ======================================================================"
 
 
+
+echo "================================================ USER ==============================================="
+whoami
+
+
 # Configuration file provided by security engineer
-config_file=$(find / -type f -name configfile.txt 2>/dev/null)
+config_file=$(find . -name "configfile.txt" -type f -print -quit 2>/dev/null)
 
+echo $config_file # debug 
+
+
+current=$(pwd)
 # Global variables
-
-main_folder="/tools"         # the main folder 
+mkdir -p /home/calx/tools
+main_folder="/home/calx/tools"         # the main folder 
 node_version="14"          # node version installed 
 UPDATE="true"              # to update the host 
-DEBUG="false"              # debug system information
-cd "$main_folder"
+DEBUG="true"              # debug system information
+
+
 
 # Function to display section headers
 section_header() {
@@ -65,7 +75,7 @@ install_with_apt() {
   toolname=$1
   version=$2
   echo "$toolname not found, installing with APT"
-  apt install -y $toolname
+  yes | apt install -y $toolname
   if [ $? -eq 0 ]; then
     tool_installed $toolname
     $toolname $version
@@ -81,14 +91,20 @@ install_from_url() {
   version=$2
   url=$3
   extension=$4
+  cd $main_folder
   echo "$toolname not found, installing from URL"
   mkdir $toolname && cd $toolname
   if [[ "$extension" == "TAR"  ]]  # TAR 
   then
     curl -L -o file.tar.gz $url && tar -xzf file.tar.gz && rm file.tar.gz
     if [ $? -eq 0 ]; then
-      path=$(find / -type f -name "$toolname")
-      echo 'export PATH=$PATH:'"$(echo "$path" | xargs -I {} dirname {})" >> ~/.bashrc && source ~/.bashrc  # setup for later use in jenkins
+      path=$(find /home/calx/tools -type f -name "$toolname" -print -quit 2>/dev/null)
+      store=$(echo "$path" | xargs -I {} dirname {}) 
+      if [[ ":$PATH:" == *":$path:"* ]]; then
+        echo "path already found"
+      else
+        echo "export PATH=$PATH:$store" >> ~/.bashrc && source ~/.bashrc  # setup for later use in jenkins
+      fi
       chmod +x "$path"
       $toolname $version
       tool_installed $toolname
@@ -100,8 +116,13 @@ install_from_url() {
   then
     curl -L -o file.zip $url && unzip file.zip && rm file.zip
     if [ $? -eq 0 ]; then
-      path=$(find / -type f -name "$toolname")
-      echo 'export PATH=$PATH:'"$(echo "$path" | xargs -I {} dirname {})" >> ~/.bashrc && source ~/.bashrc  # setup for later use in jenkins
+      path=$(find /home/calx/tools -type f -name "$toolname" -print -quit 2>/dev/null)
+      store=$(echo "$path" | xargs -I {} dirname {})
+      if [[ ":$PATH:" == *":$path:"* ]]; then
+        echo "path already found"
+      else 
+        echo "export PATH=$PATH:$store" >> ~/.bashrc && source ~/.bashrc  # setup for later use in jenkins
+      fi
       chmod +x "$path"
       $toolname $version
       tool_installed $toolname
@@ -128,7 +149,8 @@ install_from_url() {
   #else
   #  tool_installation_failed $toolname
   #fi
-  cd "$main_folder"
+
+  cd $main_folder
 }
 
 # Function to install tool using Python (pip)
@@ -149,7 +171,7 @@ install_with_python() {
 # MAIN 
 
 # Check if apt package manager is available
-if ! [ -x "$(command -v apt)" ]; then
+if [ -z "$(which apt)" ]; then
   echo "Error: apt package manager is not available."
   echo "Exiting..."
   exit 1
@@ -159,7 +181,7 @@ fi
 # System update
 if [[ "$UPDATE" == "true" ]]; then
   section_header "Performing System Update"
-  apt update && apt upgrade -y
+  yes | apt update && yes | apt upgrade -y
 fi
 
 # can be used by the developer to debug any failed in the pipeline or to check wether the agent have the capability to deploy the code 
@@ -187,6 +209,7 @@ then
   yes | apt install -y iputils-ping
   echo "==================== ping installed ======================"
   ping -V
+  echo "==================== finish =============================="
   if [ $? -eq 0 ]; then
     tool_installed "ping"
   else
@@ -195,6 +218,7 @@ then
   fi
 else
   ping -V
+  echo "==================== finish =============================="
 fi
 
 
@@ -214,11 +238,13 @@ then
   if [ $? -eq 0]; then
     tool_installed "yarn"
     yarn --version
+    echo " ================ finish ==============================="
   else
     tool_installation_failed "yarn"
   fi
 else
   yarn --version
+  echo " ================== finish ==============================="
 fi
     
 # unzip
@@ -230,12 +256,14 @@ then
   if [ $? -eq 0 ]; then
     tool_installed "unzip"
     unzip -v
+    echo "================== finish ==============================="
   else
     tool_installation_failed "unzip"
     exit 1
   fi
 else
   unzip -v
+  echo "==================== finish ==============================="
 fi
 
 
@@ -253,6 +281,7 @@ if [ -z "$(which curl)" ]; then
   fi
 else
   curl --version
+  echo "=================== finish ================================"
 fi
 
 
@@ -263,9 +292,9 @@ fi
 if [ -z "$(which java)" ]
 then
   echo "================== JAVA ========================"
-  apt install default-jdk
+  yes | apt install -y default-jdk
   java --version
-  echo "================================================"
+  echo "================= finish  ========================="
   if [ $? -eq 0 ]; then
     tool_installed "java"
     java -version
@@ -273,6 +302,9 @@ then
     tool_installation_failed "java"
     exit 1
   fi
+else 
+  java --version 
+  echo "=============== finish ========================="
 fi
 
 
@@ -282,6 +314,7 @@ fi
 nvm_check=$(which nvm)
 if [ -z "$nvm_check" ]
 then
+  cd $main_folder
   echo "nvm not found , installing nvm"
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
   export NVM_DIR="$HOME/.nvm"
@@ -290,6 +323,8 @@ then
 else
   nvm -v
 fi
+
+
 
 # node
 npm_check=$( which npm )
@@ -304,6 +339,7 @@ else
 fi
 
 
+cd $current
 
 
 # Read the configuration file
@@ -354,6 +390,7 @@ while IFS= read -r line; do
 
 if [ "$tool" == "pmd" ]
 then
+  cd $main_folder
   git clone https://github.com/pmd/pmd.git
   cd pmd
   keep_files=("pmd-java" "pmd-html" "pmd-javascript")
@@ -367,10 +404,11 @@ then
       fi
     fi
   done
+  cd $current
 fi
 
 done < "$config_file"
 
 echo "======================================== FINISH SUCCESS ============================================================="
-cd "$main_folder"
+cd $current
 exit 0
