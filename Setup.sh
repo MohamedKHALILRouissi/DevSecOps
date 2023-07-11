@@ -8,7 +8,7 @@
  # - python 
  # - unzip
 
-
+echo "================================================================== STARTING SCRIPT ======================================================================"
 
 
 # Configuration file provided by security engineer
