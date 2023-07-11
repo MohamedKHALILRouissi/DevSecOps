@@ -16,10 +16,11 @@ config_file=$(find / -type f -name configfile.txt 2>/dev/null)
 
 # Global variables
 
-main_folder=$(pwd)         # the main folder 
+main_folder="/tools"         # the main folder 
 node_version="14"          # node version installed 
 UPDATE="true"              # to update the host 
 DEBUG="false"              # debug system information
+cd "$main_folder"
 
 # Function to display section headers
 section_header() {
@@ -127,7 +128,7 @@ install_from_url() {
   #else
   #  tool_installation_failed $toolname
   #fi
-  cd $mainfolder
+  cd "$main_folder"
 }
 
 # Function to install tool using Python (pip)
@@ -371,4 +372,5 @@ fi
 done < "$config_file"
 
 echo "======================================== FINISH SUCCESS ============================================================="
+cd "$main_folder"
 exit 0
