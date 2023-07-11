@@ -100,6 +100,8 @@ install_from_url() {
     if [ $? -eq 0 ]; then
       path=$(find /home/calx/tools -type f -name "$toolname" -print -quit 2>/dev/null)
       store=$(echo "$path" | xargs -I {} dirname {}) 
+      echo "$path =========================== debugging "
+      echo "$store ========================== debugging "
       if [[ ":$PATH:" == *":$path:"* ]]; then
         echo "path already found"
       else
@@ -118,6 +120,8 @@ install_from_url() {
     if [ $? -eq 0 ]; then
       path=$(find /home/calx/tools -type f -name "$toolname" -print -quit 2>/dev/null)
       store=$(echo "$path" | xargs -I {} dirname {})
+      echo "$path =========================== debugging "
+      echo "$store ========================== debugging "
       if [[ ":$PATH:" == *":$path:"* ]]; then
         echo "path already found"
       else 
