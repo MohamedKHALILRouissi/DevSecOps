@@ -154,6 +154,13 @@ if ! [ -x "$(command -v apt)" ]; then
   exit 1
 fi
 
+
+# System update
+if [[ "$UPDATE" == "true" ]]; then
+  section_header "Performing System Update"
+  apt update && apt upgrade -y
+fi
+
 # can be used by the developer to debug any failed in the pipeline or to check wether the agent have the capability to deploy the code 
 if [ "$DEBUG" == "true" ]
 then 
@@ -199,7 +206,20 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-
+if [ -z "$(which yarn)" ]
+then
+  echo " yarn not found , installing " 
+  yes | apt install cmdtest
+  if [ $? -eq 0]; then
+    tool_installed "yarn"
+    yarn --version
+  else
+    tool_installation_failed "yarn"
+  fi
+else
+  yarn --version
+fi
+    
 # unzip
 if [ -z "$(which unzip)" ]
 then
@@ -233,14 +253,6 @@ if [ -z "$(which curl)" ]; then
 else
   curl --version
 fi
-
-# System update
-if [[ "$UPDATE" == "true" ]]; then
-  section_header "Performing System Update"
-  apt update && apt upgrade -y
-fi
-
-
 
 
 # essential
